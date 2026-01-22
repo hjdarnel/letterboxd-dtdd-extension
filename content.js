@@ -253,9 +253,12 @@
     if (yesTopics.length > 0) {
       warningsHtml += `
         <div class="dtdd-warning-group dtdd-warning-yes">
-          <h4 class="dtdd-group-header">Yes</h4>
           <ul class="dtdd-warning-list">
-            ${yesTopics.map((t) => `<li class="dtdd-warning-item">${escapeHtml(t.topic.doesName.replace(/^Does /, ''))}</li>`).join('')}
+            ${yesTopics
+              .map((t) => {
+                return `<li class="dtdd-warning-item"><span class="dtdd-votes"><span class="dtdd-yes-count">${t.yesSum}</span>/<span class="dtdd-no-count">${t.noSum}</span></span> ${escapeHtml(t.topic.name)}</li>`;
+              })
+              .join('')}
           </ul>
         </div>
       `;

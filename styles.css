@@ -3,6 +3,11 @@
  * Matches Letterboxd's visual design
  */
 
+/* Override Letterboxd sidebar overflow to allow scrolling */
+.sidebar {
+  overflow: visible !important;
+}
+
 .dtdd-panel {
   margin-top: 20px;
   padding: 0;
@@ -41,7 +46,7 @@
 
 /* Warning Groups */
 .dtdd-warning-group {
-  padding: 10px 12px;
+  padding: 0 12px;
   border-radius: 4px;
   background-color: rgba(0, 0, 0, 0.2);
 }
@@ -75,6 +80,7 @@
 .dtdd-warning-list {
   margin: 0;
   padding: 0;
+  padding-left: 0 !important;
   list-style: none;
 }
 
@@ -87,6 +93,23 @@
 
 .dtdd-warning-item:not(:last-child) {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Vote counts */
+.dtdd-votes {
+  display: inline-block;
+  width: 45px;
+  margin-right: 8px;
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.dtdd-yes-count {
+  color: #f27474;
+}
+
+.dtdd-no-count {
+  color: #00e054;
 }
 
 /* Link to DTDD */
