@@ -101,7 +101,7 @@ function renderTopics(topics, pinnedIds) {
       return `
       <label class="topic-item ${isPinned ? 'pinned' : ''}" data-topic-id="${topic.id}">
         <input type="checkbox" ${isPinned ? 'checked' : ''}>
-        <span class="topic-name">${escapeHtml(topic.name)}</span>
+        <span class="topic-name">${escapeHtml(topic.name.toLowerCase())}</span>
         <span class="topic-category">${escapeHtml(topic.categoryName)}</span>
       </label>
     `;

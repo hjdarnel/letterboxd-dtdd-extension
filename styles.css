@@ -67,18 +67,8 @@
 }
 
 .dtdd-pinned-last {
-  padding-bottom: 10px;
-  position: relative;
-  margin-bottom: 2px;
-}
-
-.dtdd-pinned-last::after {
-  content: "";
-  position: absolute;
-  bottom: -2px;
-  left: 8px;
-  right: 0;
-  border-bottom: 1px solid #456;
+  padding-bottom: 6px;
+  margin-bottom: 6px;
 }
 
 /* Warning List */
@@ -109,9 +99,19 @@
 }
 
 /* Hide top border on first main warning (after pinned section or at start) */
-.dtdd-warning-main:first-child::before,
-.dtdd-pinned-last + .dtdd-warning-main::before {
+.dtdd-warning-main:first-child::before {
   display: none;
+}
+
+/* Pinned/main section divider - must come after the hide rule */
+.dtdd-pinned-last + .dtdd-warning-main::before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: -3px;
+  left: 8px;
+  right: 0;
+  border-top: 1px solid #456;
 }
 
 .dtdd-warning-item.dtdd-status-no {
@@ -155,7 +155,7 @@
 /* Vote counts */
 .dtdd-votes {
   display: inline-block;
-  width: 45px;
+  width: 30px;
   margin-right: 8px;
   font-size: 11px;
   opacity: 0.8;

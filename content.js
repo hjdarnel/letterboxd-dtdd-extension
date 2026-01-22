@@ -11,24 +11,31 @@
   // =============================================================================
 
   // Vote thresholds and categorization
-  const MIN_VOTES_THRESHOLD = 5; // Minimum votes required to consider a warning valid
+  const MIN_VOTES_FOR_CONFIDENCE = 3; // Minimum votes required before we trust any result
+  const MIN_VOTES_FOR_SENSITIVE = 1; // Lower threshold for sensitive topics (animal death, SA, etc.)
   const MAX_YES_TOPICS_DISPLAY = 5; // Maximum number of "yes" warnings to show in panel
+
+  // Wilson Score configuration
+  const WILSON_Z_SCORE = 1.645; // 90% confidence (use 1.96 for 95%)
+  const WILSON_CONFIDENCE_THRESHOLD = 0.5; // 50% - majority threshold
 
   // Warning category values (returned by categorizeWarning)
   const WARNING_CATEGORY = {
-    YES: 'yes', // More yes votes than no votes
-    NO: 'no', // More no votes than yes votes
+    YES: 'yes', // Confident or raw majority yes
+    NO: 'no', // Confident or raw majority no
     MIXED: 'mixed', // Equal yes and no votes
     UNKNOWN: 'unknown', // Not enough votes to determine
   };
 
   // Sort order for warning categories (lower = higher priority in list)
+  // Sensitive topics get a bonus (-10) to appear first
   const WARNING_SORT_ORDER = {
     [WARNING_CATEGORY.YES]: 0,
     [WARNING_CATEGORY.NO]: 1,
     [WARNING_CATEGORY.MIXED]: 2,
     [WARNING_CATEGORY.UNKNOWN]: 2,
   };
+  const SENSITIVE_SORT_BONUS = -10; // Subtracted from sort order for sensitive topics
 
   // =============================================================================
   // INTERNAL CONSTANTS - Generally don't need modification
@@ -199,29 +206,103 @@
   }
 
   /**
-   * Categorize a topic stat as yes/no/unknown
-   * Requires minimum vote threshold for confidence
+   * Calculate Wilson Score confidence interval bounds
+   * Returns { lower, upper } representing the confidence interval for the true "yes" proportion
+   *
+   * @see https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval#Wilson_score_interval
+   */
+  function wilsonScore(yesCount, totalCount) {
+    if (totalCount === 0) return { lower: 0, upper: 0 };
+
+    const z = WILSON_Z_SCORE;
+    const p = yesCount / totalCount;
+    const n = totalCount;
+
+    const denominator = 1 + (z * z) / n;
+    const center = p + (z * z) / (2 * n);
+    const spread = z * Math.sqrt((p * (1 - p) + (z * z) / (4 * n)) / n);
+
+    const lower = (center - spread) / denominator;
+    const upper = (center + spread) / denominator;
+
+    return {
+      lower: Math.max(0, lower),
+      upper: Math.min(1, upper),
+    };
+  }
+
+  /**
+   * Categorize a topic stat using Wilson Score confidence intervals
+   *
+   * Logic:
+   * 1. If total votes < minimum threshold → unknown (threshold is lower for sensitive topics)
+   * 2. If Wilson lower bound > 50% → confident yes
+   * 3. If Wilson upper bound < 50% → confident no
+   * 4. Otherwise fall back to raw majority (yesSum vs noSum)
+   * 5. If exactly equal → mixed
    */
   function categorizeWarning(stat) {
     const { yesSum, noSum } = stat;
     const totalVotes = yesSum + noSum;
-    const topicName = stat.topic?.doesName || 'unknown topic';
+    const isSensitive = stat.topic?.isSensitive ?? false;
+    const topicName =
+      stat.topic?.doesName || stat.topic?.name || 'unknown topic';
 
-    // Not enough data to be confident
-    if (totalVotes < MIN_VOTES_THRESHOLD) {
+    // Use lower threshold for sensitive topics
+    const minVotes = isSensitive
+      ? MIN_VOTES_FOR_SENSITIVE
+      : MIN_VOTES_FOR_CONFIDENCE;
+
+    // Not enough data
+    if (totalVotes < minVotes) {
       log(
-        `"${topicName}" -> ${WARNING_CATEGORY.UNKNOWN} (${totalVotes} votes < ${MIN_VOTES_THRESHOLD} threshold)`,
+        `"${topicName}" -> ${WARNING_CATEGORY.UNKNOWN} (${totalVotes} votes < ${minVotes} minimum${isSensitive ? ', sensitive' : ''})`,
       );
       return WARNING_CATEGORY.UNKNOWN;
     }
 
-    let result;
-    if (yesSum > noSum) result = WARNING_CATEGORY.YES;
-    else if (noSum > yesSum) result = WARNING_CATEGORY.NO;
-    else result = WARNING_CATEGORY.MIXED;
+    const { lower, upper } = wilsonScore(yesSum, totalVotes);
 
-    log(`"${topicName}" -> ${result} (yes: ${yesSum}, no: ${noSum})`);
+    let result;
+    let reason;
+
+    if (lower > WILSON_CONFIDENCE_THRESHOLD) {
+      // Statistically confident majority yes
+      result = WARNING_CATEGORY.YES;
+      reason = `wilson lower ${(lower * 100).toFixed(0)}% > 50%`;
+    } else if (upper < WILSON_CONFIDENCE_THRESHOLD) {
+      // Statistically confident majority no
+      result = WARNING_CATEGORY.NO;
+      reason = `wilson upper ${(upper * 100).toFixed(0)}% < 50%`;
+    } else if (yesSum > noSum) {
+      // Uncertain but leans yes
+      result = WARNING_CATEGORY.YES;
+      reason = `raw majority (${yesSum} > ${noSum})`;
+    } else if (noSum > yesSum) {
+      // Uncertain but leans no
+      result = WARNING_CATEGORY.NO;
+      reason = `raw majority (${noSum} > ${yesSum})`;
+    } else {
+      // Exactly split
+      result = WARNING_CATEGORY.MIXED;
+      reason = 'equal votes';
+    }
+
+    log(
+      `"${topicName}" -> ${result} (yes: ${yesSum}, no: ${noSum}, ${reason}${isSensitive ? ', sensitive' : ''})`,
+    );
     return result;
+  }
+
+  /**
+   * Get sort order for a topic stat (lower = higher priority)
+   * Sensitive topics get a bonus to appear first
+   */
+  function getWarningSortOrder(stat) {
+    const category = categorizeWarning(stat);
+    const isSensitive = stat.topic?.isSensitive ?? false;
+    const baseOrder = WARNING_SORT_ORDER[category] ?? 2;
+    return isSensitive ? baseOrder + SENSITIVE_SORT_BONUS : baseOrder;
   }
 
   /**
@@ -274,27 +355,31 @@
     const dtddUrl = `${DTDD_BASE_URL}/media/${mediaId}`;
 
     // Separate pinned topics (always show) from regular topics
-    // Sort order for warning categories: yes=0, no=1, maybe/unknown/mixed=2
+    // Sort by: sensitive first, then warning category (yes → no → mixed), then by yes votes
     const pinnedTopics = topics
       .filter((t) => pinnedIds.has(t.topic?.id))
       .sort((a, b) => {
-        // Sort by warning status (yes → no → maybe), then by yes votes
-        const aCategory = categorizeWarning(a);
-        const bCategory = categorizeWarning(b);
-        const aOrder = WARNING_SORT_ORDER[aCategory] ?? 2;
-        const bOrder = WARNING_SORT_ORDER[bCategory] ?? 2;
+        const aOrder = getWarningSortOrder(a);
+        const bOrder = getWarningSortOrder(b);
         if (aOrder !== bOrder) return aOrder - bOrder;
         return b.yesSum - a.yesSum;
       });
 
     // Regular yes topics (not pinned, has enough votes)
+    // Sensitive topics are boosted to appear first
     const yesTopics = topics
       .filter(
         (t) =>
           !pinnedIds.has(t.topic?.id) &&
           categorizeWarning(t) === WARNING_CATEGORY.YES,
       )
-      .sort((a, b) => b.yesSum - a.yesSum)
+      .sort((a, b) => {
+        // Sensitive topics first, then by yes votes
+        const aSensitive = a.topic?.isSensitive ?? false;
+        const bSensitive = b.topic?.isSensitive ?? false;
+        if (aSensitive !== bSensitive) return bSensitive - aSensitive;
+        return b.yesSum - a.yesSum;
+      })
       .slice(0, MAX_YES_TOPICS_DISPLAY);
 
     const hasWarnings = pinnedTopics.length > 0 || yesTopics.length > 0;
@@ -318,7 +403,7 @@
           const isLastPinned =
             i === pinnedTopics.length - 1 && yesTopics.length > 0;
           const separatorClass = isLastPinned ? 'dtdd-pinned-last' : '';
-          return `<li class="dtdd-warning-item ${statusClass} ${separatorClass}" ${tooltipAttr}><span class="dtdd-votes"><span class="dtdd-yes-count">${t.yesSum}</span>/<span class="dtdd-no-count">${t.noSum}</span></span> ${escapeHtml(t.topic.name)}</li>`;
+          return `<li class="dtdd-warning-item ${statusClass} ${separatorClass}" ${tooltipAttr}><span class="dtdd-votes"><span class="dtdd-yes-count">${t.yesSum}</span>/<span class="dtdd-no-count">${t.noSum}</span></span> ${escapeHtml(t.topic.name.toLowerCase())}</li>`;
         })
         .join('');
 
@@ -327,7 +412,7 @@
           const tooltipAttr = t.comment
             ? `data-tooltip="${escapeHtml(t.comment)}"`
             : '';
-          return `<li class="dtdd-warning-item dtdd-warning-main" ${tooltipAttr}><span class="dtdd-votes"><span class="dtdd-yes-count">${t.yesSum}</span>/<span class="dtdd-no-count">${t.noSum}</span></span> ${escapeHtml(t.topic.name)}</li>`;
+          return `<li class="dtdd-warning-item dtdd-warning-main" ${tooltipAttr}><span class="dtdd-votes"><span class="dtdd-yes-count">${t.yesSum}</span>/<span class="dtdd-no-count">${t.noSum}</span></span> ${escapeHtml(t.topic.name.toLowerCase())}</li>`;
         })
         .join('');
 
