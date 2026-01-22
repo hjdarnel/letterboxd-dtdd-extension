@@ -3,11 +3,6 @@
  * Matches Letterboxd's visual design
  */
 
-/* Override Letterboxd sidebar overflow to allow scrolling */
-.sidebar {
-  overflow: visible !important;
-}
-
 .dtdd-panel {
   margin-top: 20px;
   margin-bottom: 16px;
@@ -74,15 +69,16 @@
 .dtdd-pinned-last {
   padding-bottom: 10px;
   position: relative;
+  margin-bottom: 2px;
 }
 
 .dtdd-pinned-last::after {
   content: "";
   position: absolute;
-  bottom: 0;
+  bottom: -2px;
   left: 8px;
   right: 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+  border-bottom: 1px solid #456;
 }
 
 /* Warning List */
@@ -110,6 +106,12 @@
   left: 8px;
   right: 0;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Hide top border on first main warning (after pinned section or at start) */
+.dtdd-warning-main:first-child::before,
+.dtdd-pinned-last + .dtdd-warning-main::before {
+  display: none;
 }
 
 .dtdd-warning-item.dtdd-status-no {

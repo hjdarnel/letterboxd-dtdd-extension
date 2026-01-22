@@ -10,13 +10,12 @@
   const DTDD_SEARCH_API = 'https://www.doesthedogdie.com/dddsearch';
   const DTDD_MEDIA_API = 'https://www.doesthedogdie.com/media';
   const DTDD_BASE_URL = 'https://www.doesthedogdie.com';
-  const DEBUG = true;
   const STORAGE_KEY_PINNED = 'dtdd-pinned-topics';
-  const PANEL_INSERT_SELECTOR = '.watch-panel';
-  const PANEL_INSERT_FALLBACK_SELECTOR = '.poster-list';
+  const PANEL_INSERT_SELECTOR = '#userpanel';
+  const PANEL_INSERT_FALLBACK_SELECTOR = 'aside.sidebar section';
 
   function log(...args) {
-    if (DEBUG) console.log('[DTDD]', ...args);
+    console.debug('[DTDD]', ...args);
   }
 
   /**
@@ -295,7 +294,7 @@
           const tooltipAttr = t.comment
             ? `data-tooltip="${escapeHtml(t.comment)}"`
             : '';
-          return `<li class="dtdd-warning-item" ${tooltipAttr}><span class="dtdd-votes"><span class="dtdd-yes-count">${t.yesSum}</span>/<span class="dtdd-no-count">${t.noSum}</span></span> ${escapeHtml(t.topic.name)}</li>`;
+          return `<li class="dtdd-warning-item dtdd-warning-main" ${tooltipAttr}><span class="dtdd-votes"><span class="dtdd-yes-count">${t.yesSum}</span>/<span class="dtdd-no-count">${t.noSum}</span></span> ${escapeHtml(t.topic.name)}</li>`;
         })
         .join('');
 
