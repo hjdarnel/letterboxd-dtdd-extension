@@ -1,6 +1,6 @@
 /**
- * Letterboxd DTDD - Background Script
- * Handles CORS proxying for DTDD requests
+ * Letterboxd DTDD Integration - Background Script
+ * Handles CORS proxying for Does The Dog Die API requests
  */
 
 // Open settings page when extension icon is clicked

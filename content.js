@@ -1,6 +1,6 @@
 /**
- * Letterboxd DTDD - Content Script
- * Injects a panel into Letterboxd film pages and fetches DTDD data
+ * Letterboxd DTDD Integration - Content Script
+ * Injects a panel into Letterboxd film pages and fetches Does The Dog Die data
  */
 
 (function () {

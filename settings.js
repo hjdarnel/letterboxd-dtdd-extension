@@ -1,5 +1,5 @@
 /**
- * Letterboxd DTDD - Settings Page Script
+ * Letterboxd DTDD Integration - Settings Page Script
  * Handles loading and saving extension settings
  */
 
