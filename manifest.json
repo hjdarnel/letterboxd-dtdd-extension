@@ -3,7 +3,11 @@
   "name": "Letterboxd DTDD",
   "version": "1.0.0",
   "description": "Adds helpful information to Letterboxd movie profiles",
-  "permissions": [],
+  "permissions": ["storage"],
+  "host_permissions": ["https://www.doesthedogdie.com/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
       "matches": ["https://letterboxd.com/film/*"],

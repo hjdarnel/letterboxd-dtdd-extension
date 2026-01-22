@@ -23,9 +23,94 @@
 .dtdd-content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
+/* Loading/Error/Not Found States */
+.dtdd-loading,
+.dtdd-error,
+.dtdd-not-found {
+  color: #9ab;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.dtdd-error {
+  color: #f27474;
+}
+
+/* Warning Groups */
+.dtdd-warning-group {
+  padding: 10px 12px;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.dtdd-warning-yes {
+  border-left: 3px solid #f27474;
+}
+
+.dtdd-warning-no {
+  border-left: 3px solid #00e054;
+}
+
+.dtdd-group-header {
+  margin: 0 0 8px 0;
+  padding: 0;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.dtdd-warning-yes .dtdd-group-header {
+  color: #f27474;
+}
+
+.dtdd-warning-no .dtdd-group-header {
+  color: #00e054;
+}
+
+/* Warning List */
+.dtdd-warning-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dtdd-warning-item {
+  padding: 4px 0;
+  font-size: 13px;
+  color: #cde;
+  line-height: 1.4;
+}
+
+.dtdd-warning-item:not(:last-child) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Link to DTDD */
+.dtdd-link {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: #456;
+  color: #fff;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.075em;
+  text-decoration: none;
+  text-align: center;
+  transition: background-color 0.2s ease;
+}
+
+.dtdd-link:hover {
+  background-color: #567;
+  text-decoration: none;
+}
+
+/* Legacy button styles (kept for compatibility) */
 .dtdd-button {
   position: relative;
   display: inline-flex;
