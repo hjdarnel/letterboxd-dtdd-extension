@@ -47,8 +47,7 @@
   const STORAGE_KEY_PINNED = 'dtdd-pinned-topics';
   const STORAGE_KEY_MAX_WARNINGS = 'dtdd-max-warnings';
   const DEFAULT_MAX_WARNINGS = 5;
-  const PANEL_INSERT_SELECTOR = '#userpanel';
-  const PANEL_INSERT_FALLBACK_SELECTOR = 'aside.sidebar section';
+  const PANEL_INSERT_SELECTOR = 'aside.sidebar';
 
   function log(...args) {
     console.debug('[DTDD]', ...args);
@@ -463,13 +462,11 @@
       return true;
     }
 
-    const insertPoint =
-      document.querySelector(PANEL_INSERT_SELECTOR) ||
-      document.querySelector(PANEL_INSERT_FALLBACK_SELECTOR);
+    const insertPoint = document.querySelector(PANEL_INSERT_SELECTOR);
 
     if (!insertPoint) return false;
 
-    insertPoint.insertAdjacentHTML('afterend', html);
+    insertPoint.insertAdjacentHTML('beforeend', html);
     attachSettingsHandler();
     log('Panel injected');
     return true;

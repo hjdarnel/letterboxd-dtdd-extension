@@ -28,15 +28,17 @@
           >
           <p class="form-hint">
             Get your API key from 
-            <a href="https://www.doesthedogdie.com/profile" target="_blank" rel="noopener">doesthedogdie.com/profile</a>
-            <span id="save-status" class="save-status"></span>
+            <a href="https://www.doesthedogdie.com/profile" target="_blank" rel="noopener">doesthedogdie.com/profile</a>.
+          </p>
+          <p class="form-hint">
+            DTDD's API seems to work without an API key, but including one may improve reliability.
           </p>
         </div>
 
         <h2>Display Options</h2>
         
         <div class="form-group">
-          <label for="max-warnings">Maximum Warnings to Display</label>
+          <label for="max-warnings">Maximum Number of Warnings to Display</label>
           <input 
             type="number" 
             id="max-warnings" 
@@ -63,7 +65,14 @@
           style="display: none;"
         >
         
-        <div id="topics-loading" class="topics-loading">Loading topics...</div>
+        <div id="topics-loading" class="topics-loading">
+          <div class="skeleton-search"></div>
+          <div class="skeleton-item"><div class="skeleton-checkbox"></div><div class="skeleton-text"></div><div class="skeleton-category"></div></div>
+          <div class="skeleton-item"><div class="skeleton-checkbox"></div><div class="skeleton-text skeleton-text-short"></div><div class="skeleton-category"></div></div>
+          <div class="skeleton-item"><div class="skeleton-checkbox"></div><div class="skeleton-text skeleton-text-medium"></div><div class="skeleton-category"></div></div>
+          <div class="skeleton-item"><div class="skeleton-checkbox"></div><div class="skeleton-text skeleton-text-short"></div><div class="skeleton-category"></div></div>
+          <div class="skeleton-item"><div class="skeleton-checkbox"></div><div class="skeleton-text"></div><div class="skeleton-category"></div></div>
+        </div>
         <div id="topics-error" class="topics-error" style="display: none;">
           Failed to load topics. Check your API key and try again.
         </div>

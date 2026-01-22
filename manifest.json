@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Letterboxd DTDD Content Warning Display",
+  "name": "Letterboxd DTDD Content Warning Integration",
   "version": "1.0.0",
-  "description": "Show Does The Dog Die content warnings on Letterboxd movie profiles",
+  "description": "Show Does The Dog Die? content warnings on Letterboxd movie profiles below the film's ratings.",
   "permissions": ["storage"],
   "host_permissions": ["https://www.doesthedogdie.com/*"],
   "background": {

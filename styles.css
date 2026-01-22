@@ -3,7 +3,14 @@
  * Matches Letterboxd's visual design
  */
 
+/* Force sidebar to flexbox so order property works */
+aside.sidebar {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
 .dtdd-panel {
+  order: 9999;
   margin-top: 20px;
   margin-bottom: 16px;
   padding: 0;
@@ -87,6 +94,14 @@
   color: #cde;
   line-height: 1.4;
   border-left: 3px solid #f27474;
+}
+
+.dtdd-warning-item:first-child {
+  border-top-left-radius: 4px;
+}
+
+.dtdd-warning-item:last-child {
+  border-bottom-left-radius: 4px;
 }
 
 .dtdd-warning-item + .dtdd-warning-item::before {

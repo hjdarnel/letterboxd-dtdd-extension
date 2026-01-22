@@ -7,9 +7,7 @@
 // CONFIGURATION - Modify these values to adjust settings page behavior
 // =============================================================================
 
-// Timing constants (milliseconds)
-const API_KEY_SAVE_DEBOUNCE_MS = 500; // Delay before saving API key after typing stops
-const STATUS_MESSAGE_DURATION_MS = 2500; // How long to show "Saved" status message
+
 
 // =============================================================================
 // INTERNAL CONSTANTS - Generally don't need modification
@@ -48,6 +46,8 @@ async function loadSettings() {
     data[STORAGE_KEYS.MAX_WARNINGS] ?? DEFAULT_MAX_WARNINGS;
 }
 
+const MIN_LOADING_TIME_MS = 600;
+
 async function loadCategories() {
   const topicsContainer = document.getElementById('topics-container');
   const topicsLoading = document.getElementById('topics-loading');
@@ -55,7 +55,11 @@ async function loadCategories() {
   const topicsSearch = document.getElementById('topics-search');
 
   try {
-    const response = await fetchDtdd(DTDD_CATEGORIES_API);
+    // Fetch with minimum loading time for smoother UX
+    const [response] = await Promise.all([
+      fetchDtdd(DTDD_CATEGORIES_API),
+      new Promise((resolve) => setTimeout(resolve, MIN_LOADING_TIME_MS)),
+    ]);
 
     if (!response || !Array.isArray(response)) {
       throw new Error('Invalid response');
@@ -145,10 +149,10 @@ function fetchDtdd(url) {
 
 function setupEventListeners() {
   const apiKeyInput = document.getElementById('api-key');
-  apiKeyInput.addEventListener('input', handleApiKeyChange);
+  apiKeyInput.addEventListener('change', handleApiKeyChange);
 
   const maxWarningsInput = document.getElementById('max-warnings');
-  maxWarningsInput.addEventListener('input', handleMaxWarningsChange);
+  maxWarningsInput.addEventListener('change', handleMaxWarningsChange);
 
   const topicsSearch = document.getElementById('topics-search');
   topicsSearch.addEventListener('input', handleSearch);
@@ -175,43 +179,20 @@ async function handleSearch(event) {
   renderTopics(filtered, pinnedIds);
 }
 
-let apiKeySaveTimeout = null;
-
 async function handleApiKeyChange(event) {
   const apiKey = event.target.value.trim();
-
-  // Debounce saves to avoid excessive writes
-  if (apiKeySaveTimeout) {
-    clearTimeout(apiKeySaveTimeout);
-  }
-
-  apiKeySaveTimeout = setTimeout(async () => {
-    await chrome.storage.sync.set({
-      [STORAGE_KEYS.API_KEY]: apiKey,
-    });
-    showStatus('Saved');
-  }, API_KEY_SAVE_DEBOUNCE_MS);
+  await chrome.storage.sync.set({
+    [STORAGE_KEYS.API_KEY]: apiKey,
+  });
 }
-
-let maxWarningsSaveTimeout = null;
 
 async function handleMaxWarningsChange(event) {
   const value = parseInt(event.target.value, 10);
-
-  // Validate: must be a positive integer
   if (isNaN(value) || value < 1) return;
 
-  // Debounce saves to avoid excessive writes
-  if (maxWarningsSaveTimeout) {
-    clearTimeout(maxWarningsSaveTimeout);
-  }
-
-  maxWarningsSaveTimeout = setTimeout(async () => {
-    await chrome.storage.sync.set({
-      [STORAGE_KEYS.MAX_WARNINGS]: value,
-    });
-    showStatus('Saved');
-  }, API_KEY_SAVE_DEBOUNCE_MS);
+  await chrome.storage.sync.set({
+    [STORAGE_KEYS.MAX_WARNINGS]: value,
+  });
 }
 
 async function handleTopicToggle(event) {
@@ -235,15 +216,4 @@ async function handleTopicToggle(event) {
   await chrome.storage.sync.set({
     [STORAGE_KEYS.PINNED_TOPICS]: [...pinnedIds],
   });
-}
-
-function showStatus(message, isError = false) {
-  const status = document.getElementById('save-status');
-  status.textContent = message;
-  status.classList.toggle('error', isError);
-  status.classList.add('visible');
-
-  setTimeout(() => {
-    status.classList.remove('visible');
-  }, STATUS_MESSAGE_DURATION_MS);
 }
