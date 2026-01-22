@@ -14,7 +14,7 @@ You can find the extension in the [Chrome Web Store](https://chromewebstore.goog
 ## Screenshots
 You can see the top content warnings below the ratings on the lower right side. The total number of DTDD users voting Yes/No is displayed next to the warning. The list is sorted by the highest count of "Yes" votes.
 
-<img src="./screenshots/warnings.png" alt="Example of displayed warnings">
+<img src="./screenshots/screenshot.png" alt="Example of displayed warnings" width=1280>
 
 You can pin any number of warnings in order to always display their status, whether they are confirmed or denied.
 
