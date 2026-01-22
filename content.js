@@ -356,8 +356,7 @@
     }
 
     // state === 'loaded'
-    const { mediaId, topics } = data;
-    const dtddUrl = `${DTDD_BASE_URL}/media/${mediaId}`;
+    const { topics } = data;
 
     // Separate pinned topics (always show) from regular topics
     // Sort by: sensitive first, then warning category (yes → no → mixed), then by yes votes
@@ -437,9 +436,6 @@
         ${header}
         <div class="dtdd-content">
           ${warningsHtml}
-          <a href="${dtddUrl}" target="_blank" rel="noopener noreferrer" class="dtdd-link">
-            View all on DoesTheDogDie
-          </a>
         </div>
       </section>
     `;
