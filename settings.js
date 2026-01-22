@@ -3,6 +3,18 @@
  * Handles loading and saving extension settings
  */
 
+// =============================================================================
+// CONFIGURATION - Modify these values to adjust settings page behavior
+// =============================================================================
+
+// Timing constants (milliseconds)
+const API_KEY_SAVE_DEBOUNCE_MS = 500; // Delay before saving API key after typing stops
+const STATUS_MESSAGE_DURATION_MS = 2500; // How long to show "Saved" status message
+
+// =============================================================================
+// INTERNAL CONSTANTS - Generally don't need modification
+// =============================================================================
+
 const STORAGE_KEYS = {
   API_KEY: 'dtdd-key',
   PINNED_TOPICS: 'dtdd-pinned-topics',
@@ -168,7 +180,7 @@ async function handleApiKeyChange(event) {
       [STORAGE_KEYS.API_KEY]: apiKey,
     });
     showStatus('Saved');
-  }, 500);
+  }, API_KEY_SAVE_DEBOUNCE_MS);
 }
 
 async function handleTopicToggle(event) {
@@ -202,5 +214,5 @@ function showStatus(message, isError = false) {
 
   setTimeout(() => {
     status.classList.remove('visible');
-  }, 2500);
+  }, STATUS_MESSAGE_DURATION_MS);
 }

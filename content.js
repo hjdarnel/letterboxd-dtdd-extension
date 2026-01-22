@@ -6,6 +6,34 @@
 (function () {
   'use strict';
 
+  // =============================================================================
+  // CONFIGURATION - Modify these values to adjust extension behavior
+  // =============================================================================
+
+  // Vote thresholds and categorization
+  const MIN_VOTES_THRESHOLD = 5; // Minimum votes required to consider a warning valid
+  const MAX_YES_TOPICS_DISPLAY = 5; // Maximum number of "yes" warnings to show in panel
+
+  // Warning category values (returned by categorizeWarning)
+  const WARNING_CATEGORY = {
+    YES: 'yes', // More yes votes than no votes
+    NO: 'no', // More no votes than yes votes
+    MIXED: 'mixed', // Equal yes and no votes
+    UNKNOWN: 'unknown', // Not enough votes to determine
+  };
+
+  // Sort order for warning categories (lower = higher priority in list)
+  const WARNING_SORT_ORDER = {
+    [WARNING_CATEGORY.YES]: 0,
+    [WARNING_CATEGORY.NO]: 1,
+    [WARNING_CATEGORY.MIXED]: 2,
+    [WARNING_CATEGORY.UNKNOWN]: 2,
+  };
+
+  // =============================================================================
+  // INTERNAL CONSTANTS - Generally don't need modification
+  // =============================================================================
+
   const PANEL_ID = 'dtdd-panel';
   const DTDD_SEARCH_API = 'https://www.doesthedogdie.com/dddsearch';
   const DTDD_MEDIA_API = 'https://www.doesthedogdie.com/media';
@@ -174,8 +202,6 @@
    * Categorize a topic stat as yes/no/unknown
    * Requires minimum vote threshold for confidence
    */
-  const MIN_VOTES_THRESHOLD = 5;
-
   function categorizeWarning(stat) {
     const { yesSum, noSum } = stat;
     const totalVotes = yesSum + noSum;
@@ -184,15 +210,15 @@
     // Not enough data to be confident
     if (totalVotes < MIN_VOTES_THRESHOLD) {
       log(
-        `"${topicName}" -> unknown (${totalVotes} votes < ${MIN_VOTES_THRESHOLD} threshold)`,
+        `"${topicName}" -> ${WARNING_CATEGORY.UNKNOWN} (${totalVotes} votes < ${MIN_VOTES_THRESHOLD} threshold)`,
       );
-      return 'unknown';
+      return WARNING_CATEGORY.UNKNOWN;
     }
 
     let result;
-    if (yesSum > noSum) result = 'yes';
-    else if (noSum > yesSum) result = 'no';
-    else result = 'mixed';
+    if (yesSum > noSum) result = WARNING_CATEGORY.YES;
+    else if (noSum > yesSum) result = WARNING_CATEGORY.NO;
+    else result = WARNING_CATEGORY.MIXED;
 
     log(`"${topicName}" -> ${result} (yes: ${yesSum}, no: ${noSum})`);
     return result;
@@ -249,15 +275,14 @@
 
     // Separate pinned topics (always show) from regular topics
     // Sort order for warning categories: yes=0, no=1, maybe/unknown/mixed=2
-    const warningOrder = { yes: 0, no: 1, mixed: 2, unknown: 2 };
     const pinnedTopics = topics
       .filter((t) => pinnedIds.has(t.topic?.id))
       .sort((a, b) => {
         // Sort by warning status (yes → no → maybe), then by yes votes
         const aCategory = categorizeWarning(a);
         const bCategory = categorizeWarning(b);
-        const aOrder = warningOrder[aCategory] ?? 2;
-        const bOrder = warningOrder[bCategory] ?? 2;
+        const aOrder = WARNING_SORT_ORDER[aCategory] ?? 2;
+        const bOrder = WARNING_SORT_ORDER[bCategory] ?? 2;
         if (aOrder !== bOrder) return aOrder - bOrder;
         return b.yesSum - a.yesSum;
       });
@@ -265,10 +290,12 @@
     // Regular yes topics (not pinned, has enough votes)
     const yesTopics = topics
       .filter(
-        (t) => !pinnedIds.has(t.topic?.id) && categorizeWarning(t) === 'yes',
+        (t) =>
+          !pinnedIds.has(t.topic?.id) &&
+          categorizeWarning(t) === WARNING_CATEGORY.YES,
       )
       .sort((a, b) => b.yesSum - a.yesSum)
-      .slice(0, 5);
+      .slice(0, MAX_YES_TOPICS_DISPLAY);
 
     const hasWarnings = pinnedTopics.length > 0 || yesTopics.length > 0;
 
@@ -280,9 +307,9 @@
         .map((t, i) => {
           const category = categorizeWarning(t);
           const statusClass =
-            category === 'no'
+            category === WARNING_CATEGORY.NO
               ? 'dtdd-status-no'
-              : category === 'unknown'
+              : category === WARNING_CATEGORY.UNKNOWN
                 ? 'dtdd-status-unknown'
                 : '';
           const tooltipAttr = t.comment
@@ -385,7 +412,7 @@
       });
 
       observer.observe(document.body, { childList: true, subtree: true });
-      setTimeout(() => observer.disconnect(), 10000);
+      setTimeout(() => observer.disconnect(), 10_000);
       return;
     }
 
