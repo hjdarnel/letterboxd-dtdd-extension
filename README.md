@@ -4,7 +4,12 @@ A browser extension to extend Letterboxd's film page with content warnings crowd
 
 You can pin warnings to always see their status for a film.
 
-Creating an account and API key from DTDD is recommended. The extension is not guaranteed to work without one. Once You may [find your API key here](https://www.doesthedogdie.com/profile).
+Creating an account and API key from DTDD is recommended. The extension is not guaranteed to work without one. Once you have an account, you may [find your API key here](https://www.doesthedogdie.com/profile).
+
+## Installation
+
+You can find the extension in the [Chrome Web Store](https://chromewebstore.google.com/detail/eambbnoeghjgfjpeiahmmahpckloaiib).
+
 
 ## Screenshots
 You can see the top content warnings below the ratings on the lower right side. The total number of DTDD users voting Yes/No is displayed next to the warning. The list is sorted by the highest count of "Yes" votes.
