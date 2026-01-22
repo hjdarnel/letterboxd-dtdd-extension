@@ -202,7 +202,13 @@
    * Build the panel HTML with warnings
    */
   function buildPanelHtml(state, data = null, pinnedIds = new Set()) {
-    const header = `<h3 class="dtdd-header">Content Warnings <button class="dtdd-settings-btn" title="Settings">⚙</button></h3>`;
+    const headerDtddUrl = data?.mediaId
+      ? `${DTDD_BASE_URL}/media/${data.mediaId}`
+      : null;
+    const headerText = headerDtddUrl
+      ? `<a href="${headerDtddUrl}" target="_blank" rel="noopener noreferrer" title="View all on Does The Dog Die">Content Warnings</a>`
+      : 'Content Warnings';
+    const header = `<h3 class="dtdd-header">${headerText} <button class="dtdd-settings-btn" title="Settings">⚙</button></h3>`;
 
     if (state === 'loading') {
       return `
@@ -262,7 +268,7 @@
         (t) => !pinnedIds.has(t.topic?.id) && categorizeWarning(t) === 'yes',
       )
       .sort((a, b) => b.yesSum - a.yesSum)
-      .slice(0, 10);
+      .slice(0, 5);
 
     const hasWarnings = pinnedTopics.length > 0 || yesTopics.length > 0;
 
