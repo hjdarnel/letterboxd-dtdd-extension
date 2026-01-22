@@ -8,6 +8,18 @@
   "background": {
     "service_worker": "background.js"
   },
+  "action": {
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "Letterboxd DTDD Settings"
+  },
+  "options_ui": {
+    "page": "settings.html",
+    "open_in_tab": true
+  },
   "content_scripts": [
     {
       "matches": ["https://letterboxd.com/film/*"],

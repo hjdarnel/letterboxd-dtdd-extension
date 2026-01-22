@@ -3,6 +3,11 @@
  * Handles CORS proxying for DTDD requests
  */
 
+// Open settings page when extension icon is clicked
+chrome.action.onClicked.addListener(() => {
+  chrome.runtime.openOptionsPage();
+});
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.name !== 'DTDD_FETCH') {
     return false;
@@ -13,9 +18,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       const headers = { Accept: 'application/json' };
 
       // Add API key if configured
-      const data = await chrome.storage.sync.get('dtdd-apikey');
-      if (data['dtdd-apikey']) {
-        headers['X-API-KEY'] = data['dtdd-apikey'];
+      const data = await chrome.storage.sync.get('dtdd-key');
+      if (data['dtdd-key']) {
+        headers['X-API-KEY'] = data['dtdd-key'];
       }
 
       const response = await fetch(msg.url, {

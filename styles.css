@@ -59,6 +59,14 @@
   border-left: 3px solid #00e054;
 }
 
+.dtdd-warning-pinned {
+  border-left: 3px solid #40bcf4;
+}
+
+.dtdd-warning-pinned .dtdd-group-header {
+  color: #40bcf4;
+}
+
 .dtdd-group-header {
   margin: 0 0 8px 0;
   padding: 0;
@@ -141,6 +149,25 @@
 
 .dtdd-no-count {
   color: #00e054;
+}
+
+/* Status indicators for pinned items */
+.dtdd-status-yes {
+  border-left: 3px solid #f27474;
+  padding-left: 8px;
+  margin-left: -11px;
+}
+
+.dtdd-status-no {
+  border-left: 3px solid #00e054;
+  padding-left: 8px;
+  margin-left: -11px;
+}
+
+.dtdd-status-unknown {
+  border-left: 3px solid #678;
+  padding-left: 8px;
+  margin-left: -11px;
 }
 
 /* Link to DTDD */

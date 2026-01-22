@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Letterboxd DTDD Settings</title>
+  <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+  <div class="settings-container">
+    <header class="settings-header">
+      <h1>Letterboxd DTDD</h1>
+      <p class="settings-subtitle">Content Warning Integration</p>
+    </header>
+
+    <form id="settings-form">
+      <section class="settings-section">
+        <h2>API Configuration</h2>
+        
+        <div class="form-group">
+          <label for="api-key">Does the Dog Die API Key</label>
+          <input 
+            type="password" 
+            id="api-key" 
+            name="api-key" 
+            placeholder="Enter your API key"
+            autocomplete="off"
+          >
+          <p class="form-hint">
+            Get your API key from 
+            <a href="https://www.doesthedogdie.com/api" target="_blank" rel="noopener">doesthedogdie.com/api</a>
+            <span id="save-status" class="save-status"></span>
+          </p>
+        </div>
+      </section>
+
+      <section class="settings-section">
+        <h2>Pinned Topics</h2>
+        <p class="section-description">
+          Pinned topics will always appear at the top of warnings, even if there are no votes.
+        </p>
+        
+        <input 
+          type="text" 
+          id="topics-search" 
+          class="topics-search"
+          placeholder="Search topics..."
+          style="display: none;"
+        >
+        
+        <div id="topics-loading" class="topics-loading">Loading topics...</div>
+        <div id="topics-error" class="topics-error" style="display: none;">
+          Failed to load topics. Check your API key and try again.
+        </div>
+        <div id="topics-container" class="topics-container"></div>
+      </section>
+    </form>
+  </div>
+
+  <script src="settings.js"></script>
+</body>
+</html>

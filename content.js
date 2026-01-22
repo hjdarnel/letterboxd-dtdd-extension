@@ -11,6 +11,9 @@
   const DTDD_MEDIA_API = 'https://www.doesthedogdie.com/media';
   const DTDD_BASE_URL = 'https://www.doesthedogdie.com';
   const DEBUG = true;
+  const STORAGE_KEY_PINNED = 'dtdd-pinned-topics';
+  const PANEL_INSERT_SELECTOR = '.watch-panel';
+  const PANEL_INSERT_FALLBACK_SELECTOR = '.poster-list';
 
   function log(...args) {
     if (DEBUG) console.log('[DTDD]', ...args);
@@ -199,7 +202,7 @@
   /**
    * Build the panel HTML with warnings
    */
-  function buildPanelHtml(state, data = null) {
+  function buildPanelHtml(state, data = null, pinnedIds = new Set()) {
     const header = `<h3 class="dtdd-header">Content Warnings</h3>`;
 
     if (state === 'loading') {
@@ -239,17 +242,56 @@
     const { mediaId, topics } = data;
     const dtddUrl = `${DTDD_BASE_URL}/media/${mediaId}`;
 
-    // Group topics by category, sort by yes votes descending, limit to 10
+    // Separate pinned topics (always show) from regular topics
+    const pinnedTopics = topics
+      .filter((t) => pinnedIds.has(t.topic?.id))
+      .sort((a, b) => {
+        // Sort by warning status (yes first), then by yes votes
+        const aIsYes = categorizeWarning(t) === 'yes';
+        const bIsYes = categorizeWarning(t) === 'yes';
+        if (aIsYes !== bIsYes) return bIsYes - aIsYes;
+        return b.yesSum - a.yesSum;
+      });
+
+    // Regular yes topics (not pinned, has enough votes)
     const yesTopics = topics
-      .filter((t) => categorizeWarning(t) === 'yes')
+      .filter(
+        (t) => !pinnedIds.has(t.topic?.id) && categorizeWarning(t) === 'yes',
+      )
       .sort((a, b) => b.yesSum - a.yesSum)
       .slice(0, 10);
 
-    // Only show topics with votes
-    const hasWarnings = yesTopics.length > 0;
+    const hasWarnings = pinnedTopics.length > 0 || yesTopics.length > 0;
 
     let warningsHtml = '';
 
+    // Render pinned topics first
+    if (pinnedTopics.length > 0) {
+      warningsHtml += `
+        <div class="dtdd-warning-group dtdd-warning-pinned">
+          <h4 class="dtdd-group-header">Pinned</h4>
+          <ul class="dtdd-warning-list">
+            ${pinnedTopics
+              .map((t) => {
+                const category = categorizeWarning(t);
+                const statusClass =
+                  category === 'yes'
+                    ? 'dtdd-status-yes'
+                    : category === 'no'
+                      ? 'dtdd-status-no'
+                      : 'dtdd-status-unknown';
+                const tooltipAttr = t.comment
+                  ? `data-tooltip="${escapeHtml(t.comment)}"`
+                  : '';
+                return `<li class="dtdd-warning-item ${statusClass}" ${tooltipAttr}><span class="dtdd-votes"><span class="dtdd-yes-count">${t.yesSum}</span>/<span class="dtdd-no-count">${t.noSum}</span></span> ${escapeHtml(t.topic.name)}</li>`;
+              })
+              .join('')}
+          </ul>
+        </div>
+      `;
+    }
+
+    // Render regular yes warnings
     if (yesTopics.length > 0) {
       warningsHtml += `
         <div class="dtdd-warning-group dtdd-warning-yes">
@@ -300,8 +342,9 @@
       return true;
     }
 
-    const watchPanel = document.querySelector('.watch-panel');
-    const insertPoint = watchPanel || document.querySelector('.poster-list');
+    const insertPoint =
+      document.querySelector(PANEL_INSERT_SELECTOR) ||
+      document.querySelector(PANEL_INSERT_FALLBACK_SELECTOR);
 
     if (!insertPoint) return false;
 
@@ -335,6 +378,10 @@
 
   async function loadData() {
     try {
+      // Load pinned topics from storage
+      const storageData = await chrome.storage.sync.get(STORAGE_KEY_PINNED);
+      const pinnedIds = new Set(storageData[STORAGE_KEY_PINNED] || []);
+
       const media = await findDtddMedia();
 
       if (!media) {
@@ -352,12 +399,17 @@
       }
 
       log('Loaded', details.topicItemStats.length, 'topics');
+      log('Pinned topic IDs:', [...pinnedIds]);
 
       injectPanel(
-        buildPanelHtml('loaded', {
-          mediaId: media.id,
-          topics: details.topicItemStats,
-        }),
+        buildPanelHtml(
+          'loaded',
+          {
+            mediaId: media.id,
+            topics: details.topicItemStats,
+          },
+          pinnedIds,
+        ),
       );
     } catch (err) {
       console.error('[DTDD] Error loading data:', err);
