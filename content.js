@@ -256,7 +256,10 @@
           <ul class="dtdd-warning-list">
             ${yesTopics
               .map((t) => {
-                return `<li class="dtdd-warning-item"><span class="dtdd-votes"><span class="dtdd-yes-count">${t.yesSum}</span>/<span class="dtdd-no-count">${t.noSum}</span></span> ${escapeHtml(t.topic.name)}</li>`;
+                const tooltipAttr = t.comment
+                  ? `data-tooltip="${escapeHtml(t.comment)}"`
+                  : '';
+                return `<li class="dtdd-warning-item" ${tooltipAttr}><span class="dtdd-votes"><span class="dtdd-yes-count">${t.yesSum}</span>/<span class="dtdd-no-count">${t.noSum}</span></span> ${escapeHtml(t.topic.name)}</li>`;
               })
               .join('')}
           </ul>
