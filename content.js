@@ -203,7 +203,7 @@
    * Build the panel HTML with warnings
    */
   function buildPanelHtml(state, data = null, pinnedIds = new Set()) {
-    const header = `<h3 class="dtdd-header">Content Warnings</h3>`;
+    const header = `<h3 class="dtdd-header">Content Warnings <button class="dtdd-settings-btn" title="Settings">⚙</button></h3>`;
 
     if (state === 'loading') {
       return `
@@ -243,13 +243,17 @@
     const dtddUrl = `${DTDD_BASE_URL}/media/${mediaId}`;
 
     // Separate pinned topics (always show) from regular topics
+    // Sort order for warning categories: yes=0, no=1, maybe/unknown/mixed=2
+    const warningOrder = { yes: 0, no: 1, mixed: 2, unknown: 2 };
     const pinnedTopics = topics
       .filter((t) => pinnedIds.has(t.topic?.id))
       .sort((a, b) => {
-        // Sort by warning status (yes first), then by yes votes
-        const aIsYes = categorizeWarning(t) === 'yes';
-        const bIsYes = categorizeWarning(t) === 'yes';
-        if (aIsYes !== bIsYes) return bIsYes - aIsYes;
+        // Sort by warning status (yes → no → maybe), then by yes votes
+        const aCategory = categorizeWarning(a);
+        const bCategory = categorizeWarning(b);
+        const aOrder = warningOrder[aCategory] ?? 2;
+        const bOrder = warningOrder[bCategory] ?? 2;
+        if (aOrder !== bOrder) return aOrder - bOrder;
         return b.yesSum - a.yesSum;
       });
 
@@ -265,51 +269,44 @@
 
     let warningsHtml = '';
 
-    // Render pinned topics first
-    if (pinnedTopics.length > 0) {
-      warningsHtml += `
-        <div class="dtdd-warning-group dtdd-warning-pinned">
-          <h4 class="dtdd-group-header">Pinned</h4>
-          <ul class="dtdd-warning-list">
-            ${pinnedTopics
-              .map((t) => {
-                const category = categorizeWarning(t);
-                const statusClass =
-                  category === 'yes'
-                    ? 'dtdd-status-yes'
-                    : category === 'no'
-                      ? 'dtdd-status-no'
-                      : 'dtdd-status-unknown';
-                const tooltipAttr = t.comment
-                  ? `data-tooltip="${escapeHtml(t.comment)}"`
-                  : '';
-                return `<li class="dtdd-warning-item ${statusClass}" ${tooltipAttr}><span class="dtdd-votes"><span class="dtdd-yes-count">${t.yesSum}</span>/<span class="dtdd-no-count">${t.noSum}</span></span> ${escapeHtml(t.topic.name)}</li>`;
-              })
-              .join('')}
-          </ul>
-        </div>
-      `;
-    }
+    if (hasWarnings) {
+      // Render pinned items with a separator class on the last one
+      const pinnedHtml = pinnedTopics
+        .map((t, i) => {
+          const category = categorizeWarning(t);
+          const statusClass =
+            category === 'no'
+              ? 'dtdd-status-no'
+              : category === 'unknown'
+                ? 'dtdd-status-unknown'
+                : '';
+          const tooltipAttr = t.comment
+            ? `data-tooltip="${escapeHtml(t.comment)}"`
+            : '';
+          const isLastPinned =
+            i === pinnedTopics.length - 1 && yesTopics.length > 0;
+          const separatorClass = isLastPinned ? 'dtdd-pinned-last' : '';
+          return `<li class="dtdd-warning-item ${statusClass} ${separatorClass}" ${tooltipAttr}><span class="dtdd-votes"><span class="dtdd-yes-count">${t.yesSum}</span>/<span class="dtdd-no-count">${t.noSum}</span></span> ${escapeHtml(t.topic.name)}</li>`;
+        })
+        .join('');
 
-    // Render regular yes warnings
-    if (yesTopics.length > 0) {
-      warningsHtml += `
+      const yesHtml = yesTopics
+        .map((t) => {
+          const tooltipAttr = t.comment
+            ? `data-tooltip="${escapeHtml(t.comment)}"`
+            : '';
+          return `<li class="dtdd-warning-item" ${tooltipAttr}><span class="dtdd-votes"><span class="dtdd-yes-count">${t.yesSum}</span>/<span class="dtdd-no-count">${t.noSum}</span></span> ${escapeHtml(t.topic.name)}</li>`;
+        })
+        .join('');
+
+      warningsHtml = `
         <div class="dtdd-warning-group dtdd-warning-yes">
           <ul class="dtdd-warning-list">
-            ${yesTopics
-              .map((t) => {
-                const tooltipAttr = t.comment
-                  ? `data-tooltip="${escapeHtml(t.comment)}"`
-                  : '';
-                return `<li class="dtdd-warning-item" ${tooltipAttr}><span class="dtdd-votes"><span class="dtdd-yes-count">${t.yesSum}</span>/<span class="dtdd-no-count">${t.noSum}</span></span> ${escapeHtml(t.topic.name)}</li>`;
-              })
-              .join('')}
+            ${pinnedHtml}${yesHtml}
           </ul>
         </div>
       `;
-    }
-
-    if (!hasWarnings) {
+    } else {
       warningsHtml = `<div class="dtdd-not-found">No significant warnings reported</div>`;
     }
 
@@ -339,6 +336,7 @@
     const existing = document.getElementById(PANEL_ID);
     if (existing) {
       existing.outerHTML = html;
+      attachSettingsHandler();
       return true;
     }
 
@@ -349,8 +347,21 @@
     if (!insertPoint) return false;
 
     insertPoint.insertAdjacentHTML('afterend', html);
+    attachSettingsHandler();
     log('Panel injected');
     return true;
+  }
+
+  /**
+   * Attach click handler to settings button
+   */
+  function attachSettingsHandler() {
+    const btn = document.querySelector('.dtdd-settings-btn');
+    if (btn) {
+      btn.addEventListener('click', () => {
+        chrome.runtime.sendMessage({ name: 'OPEN_OPTIONS' });
+      });
+    }
   }
 
   /**

@@ -10,11 +10,15 @@
 
 .dtdd-panel {
   margin-top: 20px;
+  margin-bottom: 16px;
   padding: 0;
 }
 
 .dtdd-header {
-  margin: 0 0 10px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 0 8px 0;
   padding: 0;
   font-family:
     "Graphik-Regular-Web", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -22,6 +26,22 @@
   font-weight: 400;
   letter-spacing: 0.15em;
   text-transform: uppercase;
+  color: #9ab;
+}
+
+.dtdd-settings-btn {
+  padding: 0;
+  background: none;
+  border: none;
+  color: #678;
+  font-size: 20px;
+  opacity: 0.7;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.dtdd-settings-btn:hover {
+  opacity: 1;
   color: #9ab;
 }
 
@@ -46,42 +66,23 @@
 
 /* Warning Groups */
 .dtdd-warning-group {
-  padding: 0 12px;
+  padding: 0 12px 0 0;
   border-radius: 4px;
   background-color: rgba(0, 0, 0, 0.2);
 }
 
-.dtdd-warning-yes {
-  border-left: 3px solid #f27474;
+.dtdd-pinned-last {
+  padding-bottom: 10px;
+  position: relative;
 }
 
-.dtdd-warning-no {
-  border-left: 3px solid #00e054;
-}
-
-.dtdd-warning-pinned {
-  border-left: 3px solid #40bcf4;
-}
-
-.dtdd-warning-pinned .dtdd-group-header {
-  color: #40bcf4;
-}
-
-.dtdd-group-header {
-  margin: 0 0 8px 0;
-  padding: 0;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-.dtdd-warning-yes .dtdd-group-header {
-  color: #f27474;
-}
-
-.dtdd-warning-no .dtdd-group-header {
-  color: #00e054;
+.dtdd-pinned-last::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 8px;
+  right: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
 }
 
 /* Warning List */
@@ -94,10 +95,29 @@
 
 .dtdd-warning-item {
   position: relative;
-  padding: 4px 0;
+  padding: 4px 0 4px 8px;
+  margin-left: 0;
   font-size: 13px;
   color: #cde;
   line-height: 1.4;
+  border-left: 3px solid #f27474;
+}
+
+.dtdd-warning-item + .dtdd-warning-item::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 8px;
+  right: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dtdd-warning-item.dtdd-status-no {
+  border-left-color: #00e054;
+}
+
+.dtdd-warning-item.dtdd-status-unknown {
+  border-left-color: #678;
 }
 
 /* CSS-only instant tooltip */
@@ -108,7 +128,7 @@
   bottom: 100%;
   margin-bottom: 4px;
   padding: 6px 10px;
-  max-width: 280px;
+  /* max-width: 280px; */
   background-color: #2c3440;
   color: #cde;
   font-size: 12px;
@@ -130,10 +150,6 @@
   visibility: visible;
 }
 
-.dtdd-warning-item:not(:last-child) {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
 /* Vote counts */
 .dtdd-votes {
   display: inline-block;
@@ -149,25 +165,6 @@
 
 .dtdd-no-count {
   color: #00e054;
-}
-
-/* Status indicators for pinned items */
-.dtdd-status-yes {
-  border-left: 3px solid #f27474;
-  padding-left: 8px;
-  margin-left: -11px;
-}
-
-.dtdd-status-no {
-  border-left: 3px solid #00e054;
-  padding-left: 8px;
-  margin-left: -11px;
-}
-
-.dtdd-status-unknown {
-  border-left: 3px solid #678;
-  padding-left: 8px;
-  margin-left: -11px;
 }
 
 /* Link to DTDD */

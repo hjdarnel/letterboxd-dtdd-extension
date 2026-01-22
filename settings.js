@@ -50,29 +50,9 @@ async function loadCategories() {
       keywords: topic.keywords || '',
     }));
 
-    // Load pinned state and merge with API favorites
+    // Load pinned state from local storage
     const data = await chrome.storage.sync.get(STORAGE_KEYS.PINNED_TOPICS);
     const pinnedIds = new Set(data[STORAGE_KEYS.PINNED_TOPICS] || []);
-
-    // Add any API favorites to pinned
-    const apiFavoriteIds = response
-      .filter((topic) => topic.isFavorite)
-      .map((topic) => topic.id);
-
-    let pinnedChanged = false;
-    for (const id of apiFavoriteIds) {
-      if (!pinnedIds.has(id)) {
-        pinnedIds.add(id);
-        pinnedChanged = true;
-      }
-    }
-
-    // Save if we added new favorites
-    if (pinnedChanged) {
-      await chrome.storage.sync.set({
-        [STORAGE_KEYS.PINNED_TOPICS]: [...pinnedIds],
-      });
-    }
 
     topicsLoading.style.display = 'none';
     topicsSearch.style.display = 'block';

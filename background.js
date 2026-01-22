@@ -9,6 +9,11 @@ chrome.action.onClicked.addListener(() => {
 });
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.name === 'OPEN_OPTIONS') {
+    chrome.runtime.openOptionsPage();
+    return false;
+  }
+
   if (msg.name !== 'DTDD_FETCH') {
     return false;
   }
