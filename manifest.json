@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Letterboxd Does The Dog Die Integration",
   "version": "1.0.0",
-  "description": "Show Does The Dog Die content warnings on Letterboxd movie profiles below the film's ratings.",
+  "description": "A browser extension to extend Letterboxd's film page with content warnings crowdsourced by the Does the Dog Die service.",
   "permissions": ["storage"],
   "host_permissions": ["https://www.doesthedogdie.com/*"],
   "background": {
