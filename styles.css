@@ -1,0 +1,96 @@
+/**
+ * Letterboxd DTDD - Styles
+ * Matches Letterboxd's visual design
+ */
+
+.dtdd-panel {
+  margin-top: 20px;
+  padding: 0;
+}
+
+.dtdd-header {
+  margin: 0 0 10px 0;
+  padding: 0;
+  font-family:
+    "Graphik-Regular-Web", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #9ab;
+}
+
+.dtdd-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dtdd-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  background-color: #00e054;
+  color: #14181c;
+  border: none;
+  border-radius: 3px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.075em;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.1s ease;
+}
+
+.dtdd-button:hover {
+  background-color: #00c247;
+  transform: translateY(-1px);
+}
+
+.dtdd-button:active {
+  transform: translateY(0);
+}
+
+.dtdd-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  background-color: #2c3440;
+  color: #9ab;
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  white-space: nowrap;
+  border-radius: 3px;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.dtdd-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #2c3440;
+}
+
+.dtdd-button:hover .dtdd-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
