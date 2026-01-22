@@ -18,7 +18,10 @@ const STATUS_MESSAGE_DURATION_MS = 2500; // How long to show "Saved" status mess
 const STORAGE_KEYS = {
   API_KEY: 'dtdd-key',
   PINNED_TOPICS: 'dtdd-pinned-topics',
+  MAX_WARNINGS: 'dtdd-max-warnings',
 };
+
+const DEFAULT_MAX_WARNINGS = 5;
 
 const DTDD_CATEGORIES_API = 'https://www.doesthedogdie.com/categories';
 
@@ -39,6 +42,10 @@ async function loadSettings() {
   if (data[STORAGE_KEYS.API_KEY]) {
     apiKeyInput.value = data[STORAGE_KEYS.API_KEY];
   }
+
+  const maxWarningsInput = document.getElementById('max-warnings');
+  maxWarningsInput.value =
+    data[STORAGE_KEYS.MAX_WARNINGS] ?? DEFAULT_MAX_WARNINGS;
 }
 
 async function loadCategories() {
@@ -140,6 +147,9 @@ function setupEventListeners() {
   const apiKeyInput = document.getElementById('api-key');
   apiKeyInput.addEventListener('input', handleApiKeyChange);
 
+  const maxWarningsInput = document.getElementById('max-warnings');
+  maxWarningsInput.addEventListener('input', handleMaxWarningsChange);
+
   const topicsSearch = document.getElementById('topics-search');
   topicsSearch.addEventListener('input', handleSearch);
 
@@ -178,6 +188,27 @@ async function handleApiKeyChange(event) {
   apiKeySaveTimeout = setTimeout(async () => {
     await chrome.storage.sync.set({
       [STORAGE_KEYS.API_KEY]: apiKey,
+    });
+    showStatus('Saved');
+  }, API_KEY_SAVE_DEBOUNCE_MS);
+}
+
+let maxWarningsSaveTimeout = null;
+
+async function handleMaxWarningsChange(event) {
+  const value = parseInt(event.target.value, 10);
+
+  // Validate: must be a positive integer
+  if (isNaN(value) || value < 1) return;
+
+  // Debounce saves to avoid excessive writes
+  if (maxWarningsSaveTimeout) {
+    clearTimeout(maxWarningsSaveTimeout);
+  }
+
+  maxWarningsSaveTimeout = setTimeout(async () => {
+    await chrome.storage.sync.set({
+      [STORAGE_KEYS.MAX_WARNINGS]: value,
     });
     showStatus('Saved');
   }, API_KEY_SAVE_DEBOUNCE_MS);

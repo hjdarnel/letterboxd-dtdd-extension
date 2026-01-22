@@ -13,7 +13,6 @@
   // Vote thresholds and categorization
   const MIN_VOTES_FOR_CONFIDENCE = 3; // Minimum votes required before we trust any result
   const MIN_VOTES_FOR_SENSITIVE = 1; // Lower threshold for sensitive topics (animal death, SA, etc.)
-  const MAX_YES_TOPICS_DISPLAY = 5; // Maximum number of "yes" warnings to show in panel
 
   // Wilson Score configuration
   const WILSON_Z_SCORE = 1.645; // 90% confidence (use 1.96 for 95%)
@@ -46,6 +45,8 @@
   const DTDD_MEDIA_API = 'https://www.doesthedogdie.com/media';
   const DTDD_BASE_URL = 'https://www.doesthedogdie.com';
   const STORAGE_KEY_PINNED = 'dtdd-pinned-topics';
+  const STORAGE_KEY_MAX_WARNINGS = 'dtdd-max-warnings';
+  const DEFAULT_MAX_WARNINGS = 5;
   const PANEL_INSERT_SELECTOR = '#userpanel';
   const PANEL_INSERT_FALLBACK_SELECTOR = 'aside.sidebar section';
 
@@ -308,7 +309,12 @@
   /**
    * Build the panel HTML with warnings
    */
-  function buildPanelHtml(state, data = null, pinnedIds = new Set()) {
+  function buildPanelHtml(
+    state,
+    data = null,
+    pinnedIds = new Set(),
+    maxWarnings = DEFAULT_MAX_WARNINGS,
+  ) {
     const headerDtddUrl = data?.mediaId
       ? `${DTDD_BASE_URL}/media/${data.mediaId}`
       : null;
@@ -380,7 +386,7 @@
         if (aSensitive !== bSensitive) return bSensitive - aSensitive;
         return b.yesSum - a.yesSum;
       })
-      .slice(0, MAX_YES_TOPICS_DISPLAY);
+      .slice(0, maxWarnings);
 
     const hasWarnings = pinnedTopics.length > 0 || yesTopics.length > 0;
 
@@ -506,9 +512,14 @@
 
   async function loadData() {
     try {
-      // Load pinned topics from storage
-      const storageData = await chrome.storage.sync.get(STORAGE_KEY_PINNED);
+      // Load settings from storage
+      const storageData = await chrome.storage.sync.get([
+        STORAGE_KEY_PINNED,
+        STORAGE_KEY_MAX_WARNINGS,
+      ]);
       const pinnedIds = new Set(storageData[STORAGE_KEY_PINNED] || []);
+      const maxWarnings =
+        storageData[STORAGE_KEY_MAX_WARNINGS] ?? DEFAULT_MAX_WARNINGS;
 
       const media = await findDtddMedia();
 
@@ -528,6 +539,7 @@
 
       log('Loaded', details.topicItemStats.length, 'topics');
       log('Pinned topic IDs:', [...pinnedIds]);
+      log('Max warnings to display:', maxWarnings);
 
       injectPanel(
         buildPanelHtml(
@@ -537,6 +549,7 @@
             topics: details.topicItemStats,
           },
           pinnedIds,
+          maxWarnings,
         ),
       );
     } catch (err) {
